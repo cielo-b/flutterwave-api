@@ -24,9 +24,9 @@ const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_K
 const rw_mobile_money = async (req, res) => {
     try {
       const payload = {
-        "tx_ref": "MC-158523s09v5050e8",
-        "order_id": "USS_URG_893982923s2323",
-        "amount": "1500",
+        "tx_ref": `MC-${Date.now()}`,
+        "order_id": "ORDER-123456",
+        "amount": "200",
         "currency": "RWF",
         "email": req.body.email, // Dynamically use the data sent by the frontend
         "phone_number": req.body.phone_number,
