@@ -155,4 +155,55 @@ const rw_mobile_money = async (req, res) => {
     }
 };
 
+const reimburseMobileMoney = async (req, res) => {
+    try {
+        // Validate the required fields
+        const { account_bank, account_number, amount, narration, currency, phone_number } = req.body;
+        if (!account_bank || !account_number || !amount || !narration || !currency || !phone_number) {
+            return res.status(400).json({
+                error: "Missing required fields: account_bank, account_number, amount, narration, currency, phone_number."
+            });
+        }
+
+        // Prepare the payload for the transfer
+        const payload = {
+            account_bank, // Bank or mobile money operator code (e.g., "MPS" for MTN Rwanda)
+            account_number, // Recipient's phone number or account number
+            amount, // Amount to send
+            narration, // Transaction description
+            currency, // Currency (e.g., "RWF")
+            reference: `REF-${Date.now()}`, // Unique transaction reference
+            callback_url: "https://yourdomain.com/callback-url" // Optional callback URL for webhook notifications
+        };
+
+        // Initiate the transfer
+        const response = await flw.Transfer.initiate(payload);
+
+        // Handle success or failure
+        if (response.status === "success") {
+            return res.status(200).json({
+                message: "Reimbursement sent successfully!",
+                data: response.data
+            });
+        } else {
+            return res.status(400).json({
+                error: response.message || "Failed to send reimbursement."
+            });
+        }
+    } catch (error) {
+        console.error("Error initiating reimbursement:", error);
+
+        // Handle API or network errors
+        if (error.response) {
+            return res.status(error.response.status || 500).json({
+                error: error.response.data.message || "An error occurred with the payment service."
+            });
+        } else if (error.request) {
+            return res.status(503).json({ error: "Unable to connect to the payment service. Please try again later." });
+        } else {
+            return res.status(500).json({ error: "An unexpected error occurred. Please try again." });
+        }
+    }
+};
+
 module.exports = { chargeCard, rw_mobile_money };
